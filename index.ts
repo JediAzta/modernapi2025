@@ -3,6 +3,7 @@ import Router, { RouterContext } from 'koa-router';
 import logger from 'koa-logger';
 import json from 'koa-json';
 import { router as articles } from './router/articles';
+import { router as users } from './router/users';
 import bodyParser from 'koa-bodyparser';
 
 const app: Koa= new Koa();
@@ -20,6 +21,7 @@ app.use(json());
 app.use(bodyParser());
 app.use(router.routes());
 app.use(articles.routes());
+app.use(users.routes());
 
 app.listen(10888, () => {
     console.log('Blog API started');

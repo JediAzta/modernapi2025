@@ -1,5 +1,7 @@
 import Router, { RouterContext } from 'koa-router';
 import { CustomErrorMessageFunction, body, validationResults } from 'koa-req-validation';
+import * as db from '../helpers/dbhelpers';
+import { basicAuthMiddleWare } from '../controllers/authMiddleware';
 
 const router: Router = new Router({prefix: '/api/v1/articles'});
 const articles = [
@@ -19,7 +21,16 @@ const validatorName = [
 
 
 const getAll = async(ctx: RouterContext, next: any) => {
-    ctx.body = articles;
+    // check if ctx.state is valid
+    if(ctx.status !== 401) {                                    // If not 401, that mean auth passed                
+        if(ctx.state.user.username === 'admin') {               // if admin, show all articles
+            const articlesdb = await db.find('articles', {});
+            ctx.body = articlesdb;    
+        } else {                                                // otherwise, return unauthorized
+            ctx.status = 401;
+            ctx.body = { msg: 'unauthorized'}
+        }
+    }
     await next();
 }
 
@@ -79,7 +90,7 @@ const deleteArticle = async (ctx: RouterContext, next: any) => {
     await next();
 }
 
-router.get('/', getAll); // Get all articles
+router.get('/', basicAuthMiddleWare, getAll); // Get all articles
 router.get('/:id', getById); // Get one article (variable id)
 router.post('/', ...validatorName,  add); // Create a new article
 router.put('/:id', ...validatorName,  updateArticle); // Update an article (variable id)
